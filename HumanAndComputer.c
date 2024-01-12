@@ -19,10 +19,14 @@ void drawBoard(int PlayerSize) {
 
     BeginDrawing();
 
-    if (! gameState.turnSw)
+    if (gameState.turnSw == 0)
         DrawText(TextFormat("%s's Turn To Move,", gameState.player1Name), 7, 5, 25, ColorAlpha(MAROON, 0.3));
-    else
+    else if (gameState.turnSw == 1)
         DrawText(TextFormat("%s's Turn To Move,", gameState.player2Name), 7, 5, 25, ColorAlpha(DARKGREEN, 0.3));
+    else if (gameState.turnSw == 2)
+        DrawText(TextFormat("%s's Turn To Move,", gameState.player3Name), 7, 5, 25, ColorAlpha(ORANGE, 0.3));
+    else
+        DrawText(TextFormat("%s's Turn To Move,", gameState.player4Name), 7, 5, 25, ColorAlpha(DARKBLUE, 0.3));
 
     DrawText("The Arrow Keys In This Game Are w,d,s,a (Lowercase Or Uppercase). You May Use Them To Move Your \nPiece."
              "If You Wish To Place a wall, Press 'space'."
@@ -32,11 +36,18 @@ void drawBoard(int PlayerSize) {
              5, 33, 13, ColorAlpha(GRAY, 0.7));
 
     DrawText("Remaining \nWalls :", 730, 7, 10, ColorAlpha(GRAY, 0.7));
-    DrawText(TextFormat("%d", gameState.player1WallNo - gameState.player1UsedWallNo), 740, 40, 20, ColorAlpha(MAROON, 0.3));
-    DrawText(TextFormat("%d", gameState.player2WallNo - gameState.player2UsedWallNo), 740, 62, 20, ColorAlpha(DARKGREEN, 0.3));
-
+    DrawText(TextFormat("%d", gameState.player1WallNo - gameState.player1UsedWallNo), 760, 40, 20, ColorAlpha(MAROON, 0.3));
+    DrawText(TextFormat("%d", gameState.player2WallNo - gameState.player2UsedWallNo), 760, 62, 20, ColorAlpha(DARKGREEN, 0.3));
+    if (gameState.playerCount == 4) {
+        DrawText(TextFormat("%d", gameState.player3WallNo - gameState.player3UsedWallNo), 760, 84, 20,
+                 ColorAlpha(ORANGE, 0.3));
+        DrawText(TextFormat("%d", gameState.player4WallNo - gameState.player4UsedWallNo), 760, 106, 20,
+                 ColorAlpha(DARKBLUE, 0.3));
+    }
     Vector2 Player1 = {gameState.player1Pos.x * PlayerSize + PlayerSize / 2 + 50, gameState.player1Pos.y * PlayerSize + PlayerSize / 2 + 100};
     Vector2 Player2 = {gameState.player2Pos.x * PlayerSize + PlayerSize / 2 + 50, gameState.player2Pos.y * PlayerSize + PlayerSize / 2 + 100};
+    Vector2 Player3 = {gameState.player3Pos.x * PlayerSize + PlayerSize / 2 + 50,gameState.player3Pos.y * PlayerSize + PlayerSize / 2 + 100};
+    Vector2 Player4 = {gameState.player4Pos.x * PlayerSize + PlayerSize / 2 + 50,gameState.player4Pos.y * PlayerSize + PlayerSize / 2 + 100};
 
     ClearBackground(RAYWHITE);
 
@@ -57,6 +68,10 @@ void drawBoard(int PlayerSize) {
     // Print Players :
     DrawCircleV(Player1, 5 * PlayerSize / 12, ColorAlpha(MAROON, 0.3));
     DrawCircleV(Player2, 5 * PlayerSize / 12, ColorAlpha(DARKGREEN, 0.3));
+    if (gameState.playerCount == 4) {
+        DrawCircleV(Player3, 5 * PlayerSize / 12, ColorAlpha(ORANGE, 0.3));
+        DrawCircleV(Player4, 5 * PlayerSize / 12, ColorAlpha(DARKBLUE, 0.3));
+    }
 
     // Print Player 1 walls :
     for (int i = 0; i < gameState.player1UsedWallNo; i++) {
@@ -80,6 +95,28 @@ void drawBoard(int PlayerSize) {
         DrawLineEx(wallStartPoint, wallEndPoint, PlayerSize / 8, ColorAlpha(GRAY, 0.7));
     }
 
+    // Print Player 3 walls :
+    for (int i = 0; i < gameState.player3UsedWallNo; i++) {
+        Vector2 wallStartPoint = {gameState.player3WallList[i].x * PlayerSize + 50, gameState.player3WallList[i].y * PlayerSize + 100};
+        Vector2 wallEndPoint = wallStartPoint;
+        if (gameState.player3WallList[i].dir == 'V' || gameState.player3WallList[i].dir == 'v')
+            wallEndPoint.y += 2 * PlayerSize;
+        else
+            wallEndPoint.x += 2 * PlayerSize;
+        DrawLineEx(wallStartPoint, wallEndPoint, PlayerSize / 8, ColorAlpha(GRAY, 0.7));
+    }
+
+    // Print Player 4 walls :
+    for (int i = 0; i < gameState.player4UsedWallNo; i++) {
+        Vector2 wallStartPoint = {gameState.player4WallList[i].x * PlayerSize + 50, gameState.player4WallList[i].y * PlayerSize + 100};
+        Vector2 wallEndPoint = wallStartPoint;
+        if (gameState.player4WallList[i].dir == 'V' || gameState.player4WallList[i].dir == 'v')
+            wallEndPoint.y += 2 * PlayerSize;
+        else
+            wallEndPoint.x += 2 * PlayerSize;
+        DrawLineEx(wallStartPoint, wallEndPoint, PlayerSize / 8, ColorAlpha(GRAY, 0.7));
+    }
+
     DrawLineEx(wallStartPoint, wallEndPoint, PlayerSize / 8, ColorAlpha(BLUE, 0.2));
 
     if (invalidInput)
@@ -96,8 +133,12 @@ void drawEnding(int winner) {
 
     if (winner == 1)
         DrawText(TextFormat("%s Won!", gameState.player1Name), 220, 400, 50, WHITE);
-    else
+    else if (winner == 2)
         DrawText(TextFormat("%s Won!", gameState.player2Name), 220, 400, 50, WHITE);
+    else if (winner == 3)
+        DrawText(TextFormat("%s Won!", gameState.player3Name), 220, 400, 50, WHITE);
+    else
+        DrawText(TextFormat("%s Won!", gameState.player4Name), 220, 400, 50, WHITE);
 
     EndDrawing();
 }
@@ -175,10 +216,51 @@ void drawStarting() {
                     if (player2Name.validLengthEx)
                         DrawText("The Length Of The Player's Name Should Be Less Than 10 Characters!", 115, 540, 18, ColorAlpha(MAROON, 0.5));
                 }
+                else if (gameState.playerCount == 4) {
+                    DrawText(player2Name.value, (int) textBoxPlayer2Name.x + 13, (int) textBoxPlayer2Name.y + 7, 20,
+                             ColorAlpha(GRAY, 0.7));
+
+                    DrawText("Please Enter Third Player's Name :", 20, 540, 25, WHITE);
+                    Rectangle textBoxPlayer3Name = {490, 538, 130, 30};
+                    DrawRectangleRec(textBoxPlayer3Name, WHITE);
+
+                    if (!player3Name.isSet ) {
+                        DrawText(player3Name.value, (int) textBoxPlayer3Name.x + 13, (int) textBoxPlayer3Name.y + 7, 20, ColorAlpha(BLUE, 0.4));
+                        DrawText("Player's Name Should Only Contain Lowercase English Letters!!", 115, 580, 18, ColorAlpha(DARKGREEN, 0.3));
+
+                        if (player3Name.validLengthEx)
+                            DrawText("The Length Of The Player's Name Should Be Less Than 10 Characters!", 115, 620, 18, ColorAlpha(MAROON, 0.5));
+                    }
+                    else {
+                        DrawText(player3Name.value, (int) textBoxPlayer3Name.x + 13, (int) textBoxPlayer3Name.y + 7, 20,
+                                 ColorAlpha(GRAY, 0.7));
+
+                        DrawText("Please Enter Fourth Player's Name :", 20, 620, 25, WHITE);
+                        Rectangle textBoxPlayer4Name = {490, 618, 130, 30};
+                        DrawRectangleRec(textBoxPlayer4Name, WHITE);
+
+                        if (!player4Name.isSet ) {
+                            DrawText(player4Name.value, (int) textBoxPlayer4Name.x + 13, (int) textBoxPlayer4Name.y + 7, 20, ColorAlpha(BLUE, 0.4));
+                            DrawText("Player's Name Should Only Contain Lowercase English Letters!!", 115, 660, 18, ColorAlpha(DARKGREEN, 0.3));
+
+                            if (player4Name.validLengthEx)
+                                DrawText("The Length Of The Player's Name Should Be Less Than 10 Characters!", 115, 700, 18, ColorAlpha(MAROON, 0.5));
+                        }
+                        else {
+                            DrawText(player4Name.value, (int) textBoxPlayer4Name.x + 13, (int) textBoxPlayer4Name.y + 7, 20,
+                                     ColorAlpha(GRAY, 0.7));
+
+                            DrawText("Press 'L' To Begin!", 115, 750, 20, ColorAlpha(GRAY, 1));
+                        }
+                    }
+
+
+                }
                 else {
                     DrawText(player2Name.value, (int) textBoxPlayer2Name.x + 13, (int) textBoxPlayer2Name.y + 7, 20,
                              ColorAlpha(GRAY, 0.7));
-                    DrawText("Press 'L' To Begin!", 115, 650, 20, ColorAlpha(GRAY, 1));
+
+                    DrawText("Press 'L' To Begin!", 115, 750, 20, ColorAlpha(GRAY, 1));
                 }
             }
         }
@@ -194,16 +276,18 @@ void nextMoveProcess(struct position *player) {
         case 'w':
             if (! wallForEachCell[(*player).x][(*player).y][0]) {
                 (*player).y--;
-                if (!gameState.turnSw) {
-                    if (!gameState.player2BlockCount)
-                        gameState.turnSw = 1;
-                    else
-                        gameState.player2BlockCount--;
-                } else {
-                    if (!gameState.player1BlockCount)
-                        gameState.turnSw = 0;
-                    else
-                        gameState.player1BlockCount--;
+                if (gameState.talismans[(*player).x][(*player).y]) {
+                    applyTalisman();
+                    gameState.talismans[(*player).x][(*player).y] = 0;
+                }
+                int i = (gameState.turnSw + 1) % gameState.playerCount;
+                while (1) {
+                    if (!gameState.playerBlockCount[i]) {
+                        gameState.turnSw = i;
+                        break;
+                    }
+                    gameState.playerBlockCount[i]--;
+                    i = (i + 1) % gameState.playerCount;
                 }
             }
             else
@@ -213,16 +297,18 @@ void nextMoveProcess(struct position *player) {
         case 's':
             if (! wallForEachCell[(*player).x][(*player).y][2]) {
                 (*player).y++;
-                if (!gameState.turnSw) {
-                    if (!gameState.player2BlockCount)
-                        gameState.turnSw = 1;
-                    else
-                        gameState.player2BlockCount--;
-                } else {
-                    if (!gameState.player1BlockCount)
-                        gameState.turnSw = 0;
-                    else
-                        gameState.player1BlockCount--;
+                if (gameState.talismans[(*player).x][(*player).y]) {
+                    applyTalisman();
+                    gameState.talismans[(*player).x][(*player).y] = 0;
+                }
+                int i = (gameState.turnSw + 1) % gameState.playerCount;
+                while (1) {
+                    if (!gameState.playerBlockCount[i]) {
+                        gameState.turnSw = i;
+                        break;
+                    }
+                    gameState.playerBlockCount[i]--;
+                    i = (i + 1) % gameState.playerCount;
                 }
             }
             else
@@ -232,16 +318,18 @@ void nextMoveProcess(struct position *player) {
         case 'a':
             if (! wallForEachCell[(*player).x][(*player).y][3]) {
                 (*player).x--;
-                if (!gameState.turnSw) {
-                    if (!gameState.player2BlockCount)
-                        gameState.turnSw = 1;
-                    else
-                        gameState.player2BlockCount--;
-                } else {
-                    if (!gameState.player1BlockCount)
-                        gameState.turnSw = 0;
-                    else
-                        gameState.player1BlockCount--;
+                if (gameState.talismans[(*player).x][(*player).y]) {
+                    applyTalisman();
+                    gameState.talismans[(*player).x][(*player).y] = 0;
+                }
+                int i = (gameState.turnSw + 1) % gameState.playerCount;
+                while (1) {
+                    if (!gameState.playerBlockCount[i]) {
+                        gameState.turnSw = i;
+                        break;
+                    }
+                    gameState.playerBlockCount[i]--;
+                    i = (i + 1) % gameState.playerCount;
                 }
             }
             else
@@ -251,26 +339,23 @@ void nextMoveProcess(struct position *player) {
         case 'd':
             if (! wallForEachCell[(*player).x][(*player).y][1]) {
                 (*player).x++;
-                if (!gameState.turnSw) {
-                    if (!gameState.player2BlockCount)
-                        gameState.turnSw = 1;
-                    else
-                        gameState.player2BlockCount--;
-                } else {
-                    if (!gameState.player1BlockCount)
-                        gameState.turnSw = 0;
-                    else
-                        gameState.player1BlockCount--;
+                if (gameState.talismans[(*player).x][(*player).y]) {
+                    applyTalisman();
+                    gameState.talismans[(*player).x][(*player).y] = 0;
+                }
+                int i = (gameState.turnSw + 1) % gameState.playerCount;
+                while (1) {
+                    if (!gameState.playerBlockCount[i]) {
+                        gameState.turnSw = i;
+                        break;
+                    }
+                    gameState.playerBlockCount[i]--;
+                    i = (i + 1) % gameState.playerCount;
                 }
             }
             else
                 invalidInput = 1;
             break;
-    }
-
-    if (gameState.talismans[(*player).x][(*player).y]) {
-        applyTalisman();
-        gameState.talismans[(*player).x][(*player).y] = 0;
     }
 
 }
@@ -357,6 +442,12 @@ int whoWins() {
         return 1;
     if (!gameState.player2Pos.y)
         return 2;
+    if (gameState.playerCount == 4) {
+        if (gameState.player3Pos.x == gameState.size - 1)
+            return 3;
+        if (!gameState.player4Pos.x)
+            return 4;
+    }
     return 0;
 }
 

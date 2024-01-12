@@ -1,4 +1,4 @@
-enum opponentType getOpponentType() {
+int getOpponentType(int player) {
 
     int screenWidth = 600;
     int screenHeight = 300;
@@ -26,7 +26,7 @@ enum opponentType getOpponentType() {
 
         ClearBackground(ColorAlpha(LIGHTGRAY, 0.7));
 
-        DrawText("Choose Your Opponent: ", 155, 80, 25, ColorAlpha(WHITE, 1));
+        DrawText(TextFormat("Choose Player %d's Type : ", player), 155, 80, 25, ColorAlpha(WHITE, 1));
 
         if (!whichOpponent) {
             DrawText("Play With A Friend", 60, 170, 20, ColorAlpha(BLUE, 0.3));

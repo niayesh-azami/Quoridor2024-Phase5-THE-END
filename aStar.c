@@ -32,7 +32,7 @@ int queSize() {
 
 int cnt = 0;
 
-int aStarAlgorithm(struct position startCell, int row) {
+int aStarAlgorithm(int player, struct position startCell, int dest) {
 
     cnt++;
     front = 0, rear = 0;
@@ -49,8 +49,14 @@ int aStarAlgorithm(struct position startCell, int row) {
 
     // update values for the root :
     cellDetails[startCell.x][startCell.y].g = 0;
-    cellDetails[startCell.x][startCell.y].h = abs(row - startCell.y);
-    cellDetails[startCell.x][startCell.y].f = abs(row - startCell.y);
+    if (player < 2) {
+        cellDetails[startCell.x][startCell.y].h = abs(dest - startCell.y);
+        cellDetails[startCell.x][startCell.y].f = abs(dest - startCell.y);
+    }
+    else {
+        cellDetails[startCell.x][startCell.y].h = abs(dest - startCell.x);
+        cellDetails[startCell.x][startCell.y].f = abs(dest - startCell.x);
+    }
 
     // insert the root to openlist
     queInsert(cellDetails[startCell.x][startCell.y].f, startCell.x, startCell.y);
@@ -67,18 +73,11 @@ int aStarAlgorithm(struct position startCell, int row) {
         if (!wallForEachCell[x][y][0]) {
 
             int gNew = cellDetails[x][y].g + 1;
-            int hNew = abs(row - y + 1);
+            int hNew = player < 2? abs(dest - y + 1): abs(dest - x);
             int fNew = gNew + hNew;
 
-            if (y - 1 == row) {
+            if (player < 2 && y - 1 == dest) {
                 cellDetails[x][y - 1].g = gNew;
-                /*printf("**************\n");
-                printf("%d %d %d %d\n", cnt, startCell.x, startCell.y, row);
-                for (int i = 0; i < gameState.size; i++) {
-                    for (int j = 0; j < gameState.size; j++)
-                        printf("%d ", cellDetails[j][i].g);
-                    printf("\n");
-                }*/
                 return 1;
             }
 
@@ -94,8 +93,13 @@ int aStarAlgorithm(struct position startCell, int row) {
         if (!wallForEachCell[x][y][1]) {
 
             int gNew = cellDetails[x][y].g + 1;
-            int hNew = abs(row - y);
+            int hNew = player < 2? abs(dest - y): abs(dest - x - 1);
             int fNew = gNew + hNew;
+
+            if (player > 1 && x + 1 == dest) {
+                cellDetails[x + 1][y].g = gNew;
+                return 1;
+            }
 
             if (! closedList[x + 1][y] && cellDetails[x + 1][y].f > fNew) {
                 queInsert(fNew, x + 1, y);
@@ -109,18 +113,11 @@ int aStarAlgorithm(struct position startCell, int row) {
         if (!wallForEachCell[x][y][2]) {
 
             int gNew = cellDetails[x][y].g + 1;
-            int hNew = abs(row - y - 1);
+            int hNew = player < 2? abs(dest - y - 1): abs(dest - x);
             int fNew = gNew + hNew;
 
-            if (y + 1 == row) {
+            if (player < 2 && y + 1 == dest) {
                 cellDetails[x][y + 1].g = gNew;
-                /*printf("**************\n");
-                printf("%d %d %d %d\n", cnt, startCell.x, startCell.y, row);
-                for (int i = 0; i < gameState.size; i++) {
-                    for (int j = 0; j < gameState.size; j++)
-                        printf("%d ", cellDetails[j][i].g);
-                    printf("\n");
-                }*/
                 return 1;
             }
 
@@ -136,8 +133,13 @@ int aStarAlgorithm(struct position startCell, int row) {
         if (!wallForEachCell[x][y][3]) {
 
             int gNew = cellDetails[x][y].g + 1;
-            int hNew = abs(row - y);
+            int hNew = player < 2? abs(dest - y): abs(dest - x + 1);
             int fNew = gNew + hNew;
+
+            if (player > 1 && x - 1 == dest) {
+                cellDetails[x - 1][y].g = gNew;
+                return 1;
+            }
 
             if (! closedList[x - 1][y] && cellDetails[x - 1][y].f > fNew) {
                 queInsert(fNew, x - 1, y);
@@ -149,13 +151,6 @@ int aStarAlgorithm(struct position startCell, int row) {
 
     }
 
-    /*printf("**************\n");
-    printf("%d %d %d %d\n", cnt, startCell.x, startCell.y, row);
-    for (int i = 0; i < gameState.size; i++) {
-        for (int j = 0; j < gameState.size; j++)
-            printf("%d ", cellDetails[j][i].g);
-        printf("\n");
-    }*/
 
     return 0;
 }

@@ -62,11 +62,19 @@ int validWall(struct wall newWall) {
 
     blockCell(newWall); // assume it is a valid wall and check if it doesn't block the way for players :
 
-    if (!aStarAlgorithm(gameState.player1Pos, gameState.size - 1)) { // see if there is a way for 1 to win :
+    if (!aStarAlgorithm(0, gameState.player1Pos, gameState.size - 1)) { // see if there is a way for 1 to win :
         unBlockCell(newWall);
         return 0;
     }
-    if (!aStarAlgorithm(gameState.player2Pos, 0)) { // check if there is a way for player 2 to win :
+    if (!aStarAlgorithm(1, gameState.player2Pos, 0)) { // check if there is a way for player 2 to win :
+        unBlockCell(newWall);
+        return 0;
+    }
+    if (!aStarAlgorithm(2, gameState.player3Pos, gameState.size - 1)) { // check if there is a way for player 2 to win :
+        unBlockCell(newWall);
+        return 0;
+    }
+    if (!aStarAlgorithm(3, gameState.player4Pos, 0)) { // check if there is a way for player 2 to win :
         unBlockCell(newWall);
         return 0;
     }

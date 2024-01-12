@@ -10,7 +10,6 @@ const double inF = 1e7 + 7;
 
 struct game gameState;
 int newGame = 1, wallForEachCell[100][100][5];
-enum opponentType {human = 0, computer} opponent;
 
 #include "raylib.h"
 #include "structures.c"
@@ -18,9 +17,9 @@ enum opponentType {human = 0, computer} opponent;
 #include "talisman.c"
 #include "starting.c"
 #include "HumanAndComputer.c"
-#include "graphicHuman.c"
 #include "minimax.c"
 #include "graphicComputer.c"
+#include "playerCount.c"
 #include "chooseOpponent.c"
 #include "newGame.c"
 
@@ -38,28 +37,30 @@ int main() {
         fclose(inFile);
     }
 
-    if (newGame)
-        opponent = getOpponentType();
+    if (newGame) {
+        gameState.playerCount = getPlayerCount();
+        gameState.player1Type = 0;
+        if (gameState.playerCount == 2)
+            gameState.player2Type = getOpponentType(2);
+        else {
+            gameState.player2Type = getOpponentType(2);
+            gameState.player3Type = getOpponentType(3);
+            gameState.player4Type = getOpponentType(4);
+        }
+    }
     else {
         setWallaroundTheBoard();
         for (int i = 0; i < gameState.player1UsedWallNo; i++)
             blockCell(gameState.player1WallList[i]);
         for (int i = 0; i < gameState.player2UsedWallNo; i++)
             blockCell(gameState.player2WallList[i]);
-        if (!strcmp(gameState.player2Name, "Mr. Jabal"))
-            opponent = computer;
-        else
-            opponent = human;
+        for (int i = 0; i < gameState.player3UsedWallNo; i++)
+            blockCell(gameState.player3WallList[i]);
+        for (int i = 0; i < gameState.player4UsedWallNo; i++)
+            blockCell(gameState.player4WallList[i]);
     }
 
-    switch (opponent) {
-        case human:
-            graphicHuman();
-            break;
-        case computer:
-            graphicComputer();
-            break;
-    }
+    graphicComputer();
 
     return 0;
 }

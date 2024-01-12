@@ -32,14 +32,43 @@ void graphicComputer() {
                         if (!player1Name.isSet)
                             getString(&player1Name);
                         else {
-                            strcpy(player2Name.value, "Mr. Jabal");
-                            player2Name.isSet = 1;
+                            if (gameState.player2Type && !player2Name.isSet) {
+                                strcpy(player2Name.value, "Mr. Jabal");
+                                player2Name.isSet = 1;
+                            }
+                            else if (!player2Name.isSet)
+                                getString(&player2Name);
+                            else if (gameState.playerCount == 4){
+                                if (gameState.player3Type && !player3Name.isSet) {
+                                    strcpy(player3Name.value, "Mr. Jabal2");
+                                    player3Name.isSet = 1;
+                                }
+                                else if (!player3Name.isSet)
+                                    getString(&player3Name);
+                                else {
+                                    if (gameState.player4Type && !player4Name.isSet) {
+                                        strcpy(player4Name.value, "Mr. Jabal3");
+                                        player4Name.isSet = 1;
+                                    }
+                                    else if (!player4Name.isSet)
+                                        getString(&player4Name);
+                                    else {
+                                        getStarted(size, wallNo, player1Name, player2Name);
 
-                            getStarted(size, wallNo, player1Name, player2Name);
+                                        // Starting The Real Game :
+                                        if (nextMove == 'L')
+                                            currentScreen = game;
+                                    }
+                                }
+                            }
+                            else {
+                                getStarted(size, wallNo, player1Name, player2Name);
 
-                            // Starting The Real Game :
-                            if (nextMove == 'L')
-                                currentScreen = game;
+                                // Starting The Real Game :
+                                if (nextMove == 'L')
+                                    currentScreen = game;
+                            }
+
                         }
                     }
                 }
@@ -49,29 +78,28 @@ void graphicComputer() {
             case game:
 
                 PlayerSize = (screenWidth - 100) / gameState.size;
-
                 if (!whoWins()) {
-                    if (! gameState.turnSw)
+
+                    if (gameState.turnSw == 0) {
                         nextMove = GetCharPressed();
 
-                    if (nextMove == 'q' || nextMove == 'Q') {
-                        FILE *outFile;
-                        outFile = fopen("gameState.dat", "wb");
-                        if (!outFile) {
-                            printf("could Not open file\n");
+                        if (nextMove == 'q' || nextMove == 'Q') {
+                            FILE *outFile;
+                            outFile = fopen("gameState.dat", "wb");
+                            if (!outFile) {
+                                printf("could Not open file\n");
+                                exit(0);
+                            }
+                            fwrite(&gameState, sizeof(gameState), 1, outFile);
+                            fclose(outFile);
                             exit(0);
                         }
-                        fwrite(&gameState, sizeof(gameState), 1, outFile);
-                        fclose(outFile);
-                        exit(0);
-                    }
 
-                    if (invalidInput) {
-                        invalidInput = 0;
-                        SetTargetFPS(10);
-                    }
+                        if (invalidInput) {
+                            invalidInput = 0;
+                            SetTargetFPS(10);
+                        }
 
-                    if (!gameState.turnSw) {
                         if (nextMove == ' ') {
                             if (gameState.player1UsedWallNo >= gameState.player1WallNo) {
                                 invalidInput = 1;
@@ -91,10 +119,17 @@ void graphicComputer() {
                                     blockCell(gameState.player1WallList[gameState.player1UsedWallNo]);
 
                                     gameState.player1UsedWallNo++;
-                                    if (!gameState.player2BlockCount)
-                                        gameState.turnSw = 1;
-                                    else
-                                        gameState.player2BlockCount--;
+
+                                    int i = (gameState.turnSw + 1) % gameState.playerCount;
+                                    while (1) {
+                                        if (!gameState.playerBlockCount[i]) {
+                                            gameState.turnSw = i;
+                                            break;
+                                        }
+                                        gameState.playerBlockCount[i]--;
+                                        i = (i + 1) % gameState.playerCount;
+                                    }
+
                                 } else
                                     moveSw = 0;
 
@@ -105,32 +140,270 @@ void graphicComputer() {
                         } else
                             nextMoveProcess(&gameState.player1Pos);
                     }
-                    else {
+                    else if (gameState.turnSw == 1) {
 
-                        minimax(true, 4, -inF, inF, true);
+                        if (gameState.player2Type) {
+                            minimax(true, 4, -inF, inF, gameState.turnSw);
 
-                        sleep(1.5);
-
-                        if (computerMove.type == 'p') {
-                            gameState.player2Pos = computerMove.playerPos;
-                            gameState.turnSw ^= 1;
-                            if (gameState.talismans[gameState.player2Pos.x][gameState.player2Pos.y]) {
-                                applyTalisman();
-                                gameState.talismans[gameState.player2Pos.x][gameState.player2Pos.y] = 0;
+                            if (computerMove.type == 'p') {
+                                gameState.player2Pos = computerMove.playerPos;
+                                if (gameState.talismans[gameState.player2Pos.x][gameState.player2Pos.y]) {
+                                    applyTalisman();
+                                    gameState.talismans[gameState.player2Pos.x][gameState.player2Pos.y] = 0;
+                                }
+                            } else {
+                                blockCell(computerMove.wallPos);
+                                gameState.player2WallList[gameState.player2UsedWallNo] = computerMove.wallPos;
+                                gameState.player2UsedWallNo++;
                             }
-                            gameState.turnSw ^= 1;
+
+                            int i = (gameState.turnSw + 1) % gameState.playerCount;
+                            while (1) {
+                                if (!gameState.playerBlockCount[i]) {
+                                    gameState.turnSw = i;
+                                    break;
+                                }
+                                gameState.playerBlockCount[i]--;
+                                i = (i + 1) % gameState.playerCount;
+                            }
                         }
                         else {
-                            blockCell(computerMove.wallPos);
-                            gameState.player2WallList[gameState.player2UsedWallNo] = computerMove.wallPos;
-                            gameState.player2UsedWallNo++;
-                        }
-                        if (!gameState.player1BlockCount)
-                            gameState.turnSw = 0;
-                        else
-                            gameState.player1BlockCount--;
-                    }
+                            nextMove = GetCharPressed();
 
+                            if (nextMove == 'q' || nextMove == 'Q') {
+                                FILE *outFile;
+                                outFile = fopen("gameState.dat", "wb");
+                                if (!outFile) {
+                                    printf("could Not open file\n");
+                                    exit(0);
+                                }
+                                fwrite(&gameState, sizeof(gameState), 1, outFile);
+                                fclose(outFile);
+                                exit(0);
+                            }
+
+                            if (invalidInput) {
+                                invalidInput = 0;
+                                SetTargetFPS(10);
+                            }
+
+                            if (nextMove == ' ') {
+                                if (gameState.player2UsedWallNo >= gameState.player2WallNo) {
+                                    invalidInput = 1;
+                                } else {
+                                    setWallPos(PlayerSize);
+
+                                    if (!moveSw) {
+                                        gameState.player2WallList[gameState.player2UsedWallNo].x =
+                                                (wallStartPoint.x - 50) / PlayerSize;
+                                        gameState.player2WallList[gameState.player2UsedWallNo].y =
+                                                (wallStartPoint.y - 100) / PlayerSize;
+
+                                        if (wallStartPoint.x != wallEndPoint.x)
+                                            gameState.player2WallList[gameState.player2UsedWallNo].dir = 'h';
+                                        else gameState.player2WallList[gameState.player2UsedWallNo].dir = 'v';
+
+                                        blockCell(gameState.player2WallList[gameState.player2UsedWallNo]);
+
+                                        gameState.player2UsedWallNo++;
+
+                                        int i = (gameState.turnSw + 1) % gameState.playerCount;
+                                        while (1) {
+                                            if (!gameState.playerBlockCount[i]) {
+                                                gameState.turnSw = i;
+                                                break;
+                                            }
+                                            gameState.playerBlockCount[i]--;
+                                            i = (i + 1) % gameState.playerCount;
+                                        }
+
+                                    } else
+                                        moveSw = 0;
+
+                                    wallStartPoint.x = 50, wallStartPoint.y = 100;
+                                    wallEndPoint.x = 50, wallEndPoint.y = 100;
+
+                                }
+                            } else
+                                nextMoveProcess(&gameState.player2Pos);
+                        }
+                    }
+                    else if (gameState.turnSw == 2) {
+
+                        if (gameState.player3Type) {
+                            minimax(true, 4, -inF, inF, gameState.turnSw);
+
+                            if (computerMove.type == 'p') {
+                                gameState.player3Pos = computerMove.playerPos;
+                                if (gameState.talismans[gameState.player3Pos.x][gameState.player3Pos.y]) {
+                                    applyTalisman();
+                                    gameState.talismans[gameState.player3Pos.x][gameState.player3Pos.y] = 0;
+                                }
+                            } else {
+                                blockCell(computerMove.wallPos);
+                                gameState.player3WallList[gameState.player3UsedWallNo] = computerMove.wallPos;
+                                gameState.player3UsedWallNo++;
+                            }
+
+                            int i = (gameState.turnSw + 1) % 4;
+                            while (1) {
+                                if (!gameState.playerBlockCount[i]) {
+                                    gameState.turnSw = i;
+                                    break;
+                                }
+                                gameState.playerBlockCount[i]--;
+                                i = (i + 1) % 4;
+                            }
+                        }
+                        else {
+                            nextMove = GetCharPressed();
+
+                            if (nextMove == 'q' || nextMove == 'Q') {
+                                FILE *outFile;
+                                outFile = fopen("gameState.dat", "wb");
+                                if (!outFile) {
+                                    printf("could Not open file\n");
+                                    exit(0);
+                                }
+                                fwrite(&gameState, sizeof(gameState), 1, outFile);
+                                fclose(outFile);
+                                exit(0);
+                            }
+
+                            if (invalidInput) {
+                                invalidInput = 0;
+                                SetTargetFPS(10);
+                            }
+
+                            if (nextMove == ' ') {
+                                if (gameState.player3UsedWallNo >= gameState.player3WallNo) {
+                                    invalidInput = 1;
+                                } else {
+                                    setWallPos(PlayerSize);
+
+                                    if (!moveSw) {
+                                        gameState.player3WallList[gameState.player3UsedWallNo].x =
+                                                (wallStartPoint.x - 50) / PlayerSize;
+                                        gameState.player3WallList[gameState.player3UsedWallNo].y =
+                                                (wallStartPoint.y - 100) / PlayerSize;
+
+                                        if (wallStartPoint.x != wallEndPoint.x)
+                                            gameState.player3WallList[gameState.player3UsedWallNo].dir = 'h';
+                                        else gameState.player3WallList[gameState.player3UsedWallNo].dir = 'v';
+
+                                        blockCell(gameState.player3WallList[gameState.player3UsedWallNo]);
+
+                                        gameState.player3UsedWallNo++;
+
+                                        int i = (gameState.turnSw + 1) % 4;
+                                        while (1) {
+                                            if (!gameState.playerBlockCount[i]) {
+                                                gameState.turnSw = i;
+                                                break;
+                                            }
+                                            gameState.playerBlockCount[i]--;
+                                            i = (i + 1) % 4;
+                                        }
+
+                                    } else
+                                        moveSw = 0;
+
+                                    wallStartPoint.x = 50, wallStartPoint.y = 100;
+                                    wallEndPoint.x = 50, wallEndPoint.y = 100;
+
+                                }
+                            } else
+                                nextMoveProcess(&gameState.player3Pos);
+                        }
+                    }
+                    else {
+
+                        if (gameState.player4Type) {
+                            minimax(true, 4, -inF, inF, gameState.turnSw);
+
+                            if (computerMove.type == 'p') {
+                                gameState.player4Pos = computerMove.playerPos;
+                                if (gameState.talismans[gameState.player4Pos.x][gameState.player4Pos.y]) {
+                                    applyTalisman();
+                                    gameState.talismans[gameState.player4Pos.x][gameState.player4Pos.y] = 0;
+                                }
+                            } else {
+                                blockCell(computerMove.wallPos);
+                                gameState.player4WallList[gameState.player4UsedWallNo] = computerMove.wallPos;
+                                gameState.player4UsedWallNo++;
+                            }
+
+                            int i = (gameState.turnSw + 1) % 4;
+                            while (1) {
+                                if (!gameState.playerBlockCount[i]) {
+                                    gameState.turnSw = i;
+                                    break;
+                                }
+                                gameState.playerBlockCount[i]--;
+                                i = (i + 1) % 4;
+                            }
+                        }
+                        else {
+                            nextMove = GetCharPressed();
+
+                            if (nextMove == 'q' || nextMove == 'Q') {
+                                FILE *outFile;
+                                outFile = fopen("gameState.dat", "wb");
+                                if (!outFile) {
+                                    printf("could Not open file\n");
+                                    exit(0);
+                                }
+                                fwrite(&gameState, sizeof(gameState), 1, outFile);
+                                fclose(outFile);
+                                exit(0);
+                            }
+
+                            if (invalidInput) {
+                                invalidInput = 0;
+                                SetTargetFPS(10);
+                            }
+
+                            if (nextMove == ' ') {
+                                if (gameState.player4UsedWallNo >= gameState.player4WallNo) {
+                                    invalidInput = 1;
+                                } else {
+                                    setWallPos(PlayerSize);
+
+                                    if (!moveSw) {
+                                        gameState.player4WallList[gameState.player4UsedWallNo].x =
+                                                (wallStartPoint.x - 50) / PlayerSize;
+                                        gameState.player4WallList[gameState.player4UsedWallNo].y =
+                                                (wallStartPoint.y - 100) / PlayerSize;
+
+                                        if (wallStartPoint.x != wallEndPoint.x)
+                                            gameState.player4WallList[gameState.player4UsedWallNo].dir = 'h';
+                                        else gameState.player4WallList[gameState.player4UsedWallNo].dir = 'v';
+
+                                        blockCell(gameState.player4WallList[gameState.player4UsedWallNo]);
+
+                                        gameState.player4UsedWallNo++;
+
+                                        int i = (gameState.turnSw + 1) % 4;
+                                        while (1) {
+                                            if (!gameState.playerBlockCount[i]) {
+                                                gameState.turnSw = i;
+                                                break;
+                                            }
+                                            gameState.playerBlockCount[i]--;
+                                            i = (i + 1) % 4;
+                                        }
+
+                                    } else
+                                        moveSw = 0;
+
+                                    wallStartPoint.x = 50, wallStartPoint.y = 100;
+                                    wallEndPoint.x = 50, wallEndPoint.y = 100;
+
+                                }
+                            } else
+                                nextMoveProcess(&gameState.player4Pos);
+                        }
+                    }
                     drawBoard(PlayerSize);
                 }
                 else {
