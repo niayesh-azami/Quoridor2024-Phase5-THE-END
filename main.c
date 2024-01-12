@@ -2,6 +2,8 @@
 #include <string.h>
 #include <stdlib.h>
 #include <math.h>
+#include <time.h>
+#include <unistd.h>
 
 const int Mx = 1e4 + 10;
 const double inF = 1e7 + 7;
@@ -12,8 +14,9 @@ enum opponentType {human = 0, computer} opponent;
 
 #include "raylib.h"
 #include "structures.c"
-#include "starting.c"
 #include "validwall.c"
+#include "talisman.c"
+#include "starting.c"
 #include "HumanAndComputer.c"
 #include "graphicHuman.c"
 #include "minimax.c"
@@ -28,9 +31,6 @@ int main() {
     inFile = fopen("gameState.dat", "rb");
     if (inFile) {
         fread(&gameState, sizeof(gameState), 1, inFile);
-        printf("****** %d\n", gameState.size);
-        printf("%d %d\n", gameState.player1Pos.x, gameState.player1Pos.y);
-        printf("%d %d\n", gameState.player2Pos.x, gameState.player2Pos.y);
         if (!feof(inFile))
             newGame = getNewGame();
         fclose(inFile);
@@ -63,3 +63,4 @@ int main() {
 
     return 0;
 }
+

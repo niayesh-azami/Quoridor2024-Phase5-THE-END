@@ -73,7 +73,7 @@ void graphicComputer() {
 
                     if (!gameState.turnSw) {
                         if (nextMove == ' ') {
-                            if (gameState.player1UsedWallNo == gameState.player1WallNo) {
+                            if (gameState.player1UsedWallNo >= gameState.player1WallNo) {
                                 invalidInput = 1;
                             } else {
                                 setWallPos(PlayerSize);
@@ -91,7 +91,10 @@ void graphicComputer() {
                                     blockCell(gameState.player1WallList[gameState.player1UsedWallNo]);
 
                                     gameState.player1UsedWallNo++;
-                                    gameState.turnSw = 1;
+                                    if (!gameState.player2BlockCount)
+                                        gameState.turnSw = 1;
+                                    else
+                                        gameState.player2BlockCount--;
                                 } else
                                     moveSw = 0;
 
@@ -100,20 +103,32 @@ void graphicComputer() {
 
                             }
                         } else
-                            nextMoveProcess(&gameState.turnSw, &gameState.player1Pos);
+                            nextMoveProcess(&gameState.player1Pos);
                     }
                     else {
 
                         minimax(true, 4, -inF, inF, true);
 
-                        if (computerMove.type == 'p')
+                        sleep(1.5);
+
+                        if (computerMove.type == 'p') {
                             gameState.player2Pos = computerMove.playerPos;
+                            gameState.turnSw ^= 1;
+                            if (gameState.talismans[gameState.player2Pos.x][gameState.player2Pos.y]) {
+                                applyTalisman();
+                                gameState.talismans[gameState.player2Pos.x][gameState.player2Pos.y] = 0;
+                            }
+                            gameState.turnSw ^= 1;
+                        }
                         else {
                             blockCell(computerMove.wallPos);
                             gameState.player2WallList[gameState.player2UsedWallNo] = computerMove.wallPos;
                             gameState.player2UsedWallNo++;
                         }
-                        gameState.turnSw = 0;
+                        if (!gameState.player1BlockCount)
+                            gameState.turnSw = 0;
+                        else
+                            gameState.player1BlockCount--;
                     }
 
                     drawBoard(PlayerSize);

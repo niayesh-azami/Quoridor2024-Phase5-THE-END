@@ -19,6 +19,9 @@ struct game {
     char player1Name[50];
     char player2Name[50];
     int turnSw;
+    int talismans[100 + 10][100 + 10];
+    int player1BlockCount;
+    int player2BlockCount;
 };
 
 struct stringInStartingScreen {

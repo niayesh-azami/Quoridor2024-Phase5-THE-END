@@ -1,3 +1,4 @@
+int  talismanIsSet = 0;
 struct stringInStartingScreen size, wallNo, player1Name, player2Name;
 
 void setWallaroundTheBoard() {
@@ -48,6 +49,11 @@ void getStarted(struct stringInStartingScreen size, struct stringInStartingScree
 
     gameState.turnSw = 0;
 
+    gameState.player1BlockCount = 0;
+    gameState.player2BlockCount = 0;
+
     setWallaroundTheBoard();
 
+    if (!talismanIsSet)
+        generateTalismanPosition(), talismanIsSet = 1;
 }

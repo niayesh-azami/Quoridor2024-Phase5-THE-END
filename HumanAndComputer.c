@@ -47,6 +47,8 @@ void drawBoard(int PlayerSize) {
         boardCell.x = 50;
         for (int j = 0; j < gameState.size; j++) {
             DrawRectangleLinesEx(boardCell, 1, LIGHTGRAY);
+            if (gameState.talismans[j][i])
+                DrawRectangleLinesEx(boardCell, 10, ColorAlpha(PURPLE, 0.2));
             boardCell.x += PlayerSize;
         }
         boardCell.y += PlayerSize;
@@ -185,37 +187,90 @@ void drawStarting() {
     EndDrawing();
 }
 
-void nextMoveProcess(int *turn, struct position *player) {
+void nextMoveProcess(struct position *player) {
 
     switch (nextMove) {
         case 'W':
         case 'w':
-            if (! wallForEachCell[(*player).x][(*player).y][0])
-                (*player).y--, (*turn) ^= 1;
+            if (! wallForEachCell[(*player).x][(*player).y][0]) {
+                (*player).y--;
+                if (!gameState.turnSw) {
+                    if (!gameState.player2BlockCount)
+                        gameState.turnSw = 1;
+                    else
+                        gameState.player2BlockCount--;
+                } else {
+                    if (!gameState.player1BlockCount)
+                        gameState.turnSw = 0;
+                    else
+                        gameState.player1BlockCount--;
+                }
+            }
             else
                 invalidInput = 1;
             break;
         case 'S':
         case 's':
-            if (! wallForEachCell[(*player).x][(*player).y][2])
-                (*player).y++, (*turn) ^= 1;
+            if (! wallForEachCell[(*player).x][(*player).y][2]) {
+                (*player).y++;
+                if (!gameState.turnSw) {
+                    if (!gameState.player2BlockCount)
+                        gameState.turnSw = 1;
+                    else
+                        gameState.player2BlockCount--;
+                } else {
+                    if (!gameState.player1BlockCount)
+                        gameState.turnSw = 0;
+                    else
+                        gameState.player1BlockCount--;
+                }
+            }
             else
                 invalidInput = 1;
             break;
         case 'A':
         case 'a':
-            if (! wallForEachCell[(*player).x][(*player).y][3])
-                (*player).x--, (*turn) ^= 1;
+            if (! wallForEachCell[(*player).x][(*player).y][3]) {
+                (*player).x--;
+                if (!gameState.turnSw) {
+                    if (!gameState.player2BlockCount)
+                        gameState.turnSw = 1;
+                    else
+                        gameState.player2BlockCount--;
+                } else {
+                    if (!gameState.player1BlockCount)
+                        gameState.turnSw = 0;
+                    else
+                        gameState.player1BlockCount--;
+                }
+            }
             else
                 invalidInput = 1;
             break;
         case 'D':
         case 'd':
-            if (! wallForEachCell[(*player).x][(*player).y][1])
-                (*player).x++, (*turn) ^= 1;
+            if (! wallForEachCell[(*player).x][(*player).y][1]) {
+                (*player).x++;
+                if (!gameState.turnSw) {
+                    if (!gameState.player2BlockCount)
+                        gameState.turnSw = 1;
+                    else
+                        gameState.player2BlockCount--;
+                } else {
+                    if (!gameState.player1BlockCount)
+                        gameState.turnSw = 0;
+                    else
+                        gameState.player1BlockCount--;
+                }
+            }
             else
                 invalidInput = 1;
             break;
+    }
+
+    if (gameState.talismans[(*player).x][(*player).y]) {
+        applyTalisman();
+        gameState.talismans[(*player).x][(*player).y] = 0;
     }
 
 }

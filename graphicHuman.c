@@ -74,7 +74,7 @@ void graphicHuman() {
 
                     if (!gameState.turnSw) {
                         if (nextMove == ' ') {
-                            if (gameState.player1UsedWallNo == gameState.player1WallNo) {
+                            if (gameState.player1UsedWallNo >= gameState.player1WallNo) {
                                 invalidInput = 1;
                             } else {
                                 setWallPos(PlayerSize);
@@ -92,7 +92,10 @@ void graphicHuman() {
                                     blockCell(gameState.player1WallList[gameState.player1UsedWallNo]);
 
                                     gameState.player1UsedWallNo++;
-                                    gameState.turnSw = 1;
+                                    if (!gameState.player2BlockCount)
+                                        gameState.turnSw = 1;
+                                    else
+                                        gameState.player2BlockCount--;
                                 } else
                                     moveSw = 0;
 
@@ -101,11 +104,11 @@ void graphicHuman() {
 
                             }
                         } else
-                            nextMoveProcess(&gameState.turnSw, &gameState.player1Pos);
+                            nextMoveProcess(&gameState.player1Pos);
                     }
                     else {
                         if (nextMove == ' ') {
-                            if (gameState.player2UsedWallNo == gameState.player2WallNo)
+                            if (gameState.player2UsedWallNo >= gameState.player2WallNo)
                                 invalidInput = 1;
                             else {
                                 setWallPos(PlayerSize);
@@ -123,7 +126,10 @@ void graphicHuman() {
                                     blockCell(gameState.player2WallList[gameState.player2UsedWallNo]);
 
                                     gameState.player2UsedWallNo++;
-                                    gameState.turnSw = 0;
+                                    if (!gameState.player1BlockCount)
+                                        gameState.turnSw = 0;
+                                    else
+                                        gameState.player1BlockCount--;
                                 } else
                                     moveSw = 0;
 
@@ -132,7 +138,7 @@ void graphicHuman() {
 
                             }
                         } else
-                            nextMoveProcess(&gameState.turnSw, &gameState.player2Pos);
+                            nextMoveProcess(&gameState.player2Pos);
                     }
                     drawBoard(PlayerSize);
                 }
